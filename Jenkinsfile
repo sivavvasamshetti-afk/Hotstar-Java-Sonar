@@ -3,11 +3,11 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_ENV = 'sq'
-        DOCKER_IMAGE = "rajeshtutta123/rajesh_hotstar-02-04-26"
+        SONARQUBE_ENV = 'soqu'
+            DOCKER_IMAGE = "sivav2516/siva_hotstar-java-sonar"
         AWS_CREDS = credentials('aws-creds')
         AWS_DEFAULT_REGION = 'us-east-1'
-        RECIPIENTS = 'rajeshtutta123@gmail.com'
+        RECIPIENTS = 'siva.vasamshetti@gmail.com'
     }
 
     stages {
