@@ -1,32 +1,38 @@
-
 pipeline {
     agent any
 
     environment {
         SONARQUBE_ENV = 'soqu'
-            DOCKER_IMAGE = "sivav2516/siva_hotstar-java-sonar"
+        DOCKER_IMAGE = "sivav2516/siva_hotstar-java-sonar"
         AWS_DEFAULT_REGION = 'us-east-1'
         RECIPIENTS = 'siva.vasamshetti@gmail.com'
     }
+
+    tools {
+        jdk 'jdk17'
+        maven 'maven3'
+    }
+
     stages {
 
-        stage('CHECKOUT') {
+        stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/sivavvasamshetti-afk/Hotstar-Java-Sonar.git'
             }
         }
-        stage('BUILD') {
-        steps {
-            sh 'mvn clean package -DskipTests'
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
         }
-    }
-        stage('JENKINS TO NEXUS') {
-        steps {
-          withMaven(jdk: 'jdk17', maven: 'maven3', traceability: true) {
-             sh 'mvn deploy'
-}
+
+        stage('Deploy to Nexus') {
+            steps {
+                sh 'mvn deploy'
+            }
         }
-    }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
@@ -37,47 +43,46 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
         }
+
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:latest .'
+                sh 'docker build -t ${DOCKER_IMAGE}:latest .'
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'Docker_cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                withCredentials([usernamePassword(
+                    credentialsId: 'Docker_cred',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
                     sh '''
                     echo $PASS | docker login -u $USER --password-stdin
-                    docker push $DOCKER_IMAGE:latest
+                    docker push ${DOCKER_IMAGE}:latest
                     docker logout
                     '''
                 }
             }
         }
-         stage('Build') {
-            steps {
-                echo "Building..."
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo "Testing..."
-            }
-        }
 
         stage('Deploy to EKS') {
             steps {
-                sh '''
-                aws eks update-kubeconfig --region us-east-1 --name mycluster
-                kubectl apply -f deployment.yml
-                kubectl apply -f service.yml
-                '''
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    sh '''
+                    aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name mycluster
+                    kubectl apply -f deployment.yml
+                    kubectl apply -f service.yml
+                    '''
+                }
             }
         }
     }
@@ -85,19 +90,18 @@ pipeline {
     post {
         success {
             emailext(
-                subject: "Jenkins Job '${env.JOB_NAME}' Success",
-                body: "Good news! Job '${env.JOB_NAME}' (#${env.BUILD_NUMBER}) succeeded.\n\nCheck console output at ${env.BUILD_URL}",
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "Build Successful!\n\nCheck: ${env.BUILD_URL}",
                 to: "${RECIPIENTS}"
             )
         }
 
         failure {
             emailext(
-                subject: "Jenkins Job '${env.JOB_NAME}' Failed",
-                body: "Alert! Job '${env.JOB_NAME}' (#${env.BUILD_NUMBER}) failed.\n\nCheck console output at ${env.BUILD_URL}",
+                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "Build Failed!\n\nCheck: ${env.BUILD_URL}",
                 to: "${RECIPIENTS}"
             )
         }
-
     }
 }
