@@ -5,6 +5,7 @@ pipeline {
     environment {
         SONARQUBE_ENV = 'soqu'
             DOCKER_IMAGE = "sivav2516/siva_hotstar-java-sonar"
+        AWS_CREDS = credentials('aws-creds')
         AWS_DEFAULT_REGION = 'us-east-1'
         RECIPIENTS = 'siva.vasamshetti@gmail.com'
     }
