@@ -12,9 +12,9 @@ pipeline {
 
     stages {
 
-        stage('Clone Repository') {
+        stage('CHECKOUT') {
             steps {
-                git branch: 'main', url: 'https://github.com/rajeshtutta/Hotstar-02-04-26-.git'
+                git branch: 'main', url: 'https://github.com/sivavvasamshetti-afk/Hotstar-Java-Sonar.git'
             }
         }
         stage('BUILD') {
@@ -24,7 +24,7 @@ pipeline {
     }
         stage('JENKINS TO NEXUS') {
         steps {
-          withMaven(jdk: 'jdk21', maven: 'maven3', traceability: true) {
+          withMaven(jdk: 'jdk17', maven: 'maven3', traceability: true) {
              sh 'mvn deploy'
 }
         }
@@ -54,7 +54,7 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'Docker_cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
                     echo $PASS | docker login -u $USER --password-stdin
                     docker push $DOCKER_IMAGE:latest
@@ -81,7 +81,7 @@ pipeline {
                 export AWS_ACCESS_KEY_ID=$AWS_CREDS_USR
                 export AWS_SECRET_ACCESS_KEY=$AWS_CREDS_PSW
 
-                aws eks update-kubeconfig --region us-east-1 --name mycluster1
+                aws eks update-kubeconfig --region us-east-1 --name mycluster
                 kubectl apply -f deployment.yml
                 kubectl apply -f service.yml
                 '''
