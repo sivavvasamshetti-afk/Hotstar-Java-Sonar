@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_ENV = 'soqu'
+        SONARQUBE_ENV = 'sonarq'
         DOCKER_IMAGE = "sivav2516/siva_hotstar-java-sonar"
         AWS_DEFAULT_REGION = 'us-east-1'
         RECIPIENTS = 'siva.vasamshetti@gmail.com'
