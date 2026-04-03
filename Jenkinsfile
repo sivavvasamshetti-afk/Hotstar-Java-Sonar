@@ -99,6 +99,8 @@ pipeline {
                 body: "Build Failed!\n\nCheck: ${env.BUILD_URL}",
                 to: "${RECIPIENTS}"
             )
+          } 
         }
-    }
-}
+      }
+   }
+}    
