@@ -51,7 +51,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${DOCKER_IMAGE}:latest .'
+                sh "docker build -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
@@ -74,13 +74,13 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    export KUBECONFIG=/var/lib/jenkins/.kube/config
+                export KUBECONFIG=/var/lib/jenkins/.kube/config
 
-                    kubectl get nodes
-
-                    kubectl apply -f deployment.yml
-                    kubectl apply -f Service.yml
+                kubectl get nodes
+                kubectl apply -f deployment.yml
+                kubectl apply -f Service.yml
                 '''
+            }
         }
     }
 
@@ -100,6 +100,5 @@ pipeline {
                 to: "${RECIPIENTS}"
             )
         }
-      }
-   }
-}    
+    }
+}
