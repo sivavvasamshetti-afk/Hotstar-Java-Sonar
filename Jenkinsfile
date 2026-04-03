@@ -71,19 +71,16 @@ pipeline {
             }
         }
 
-        stage('Deploy to EKS') {
+        stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds'
-                ]]) {
-                    sh '''
-                    aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name mycluster
+                sh '''
+                    export KUBECONFIG=/var/lib/jenkins/.kube/config
+
+                    kubectl get nodes
+
                     kubectl apply -f deployment.yml
-                    kubectl apply -f service.yml
-                    '''
-                }
-            }
+                    kubectl apply -f Service.yml
+                '''
         }
     }
 
